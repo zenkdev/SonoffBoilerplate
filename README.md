@@ -1,5 +1,7 @@
 # SonoffBoilerplate
 
+This is a fork of [tzapu](https://github.com/tzapu) SonoffBoilerplate project, currently deleted from GitHub.
+
 This is a replacement firmware (Arduino IDE with ESP8266 core needed) for the ESP8266 based Sonoff devices. Use it as a starting block for customizing your Sonoff.
 
 ## What's a "Sonoff"?
@@ -18,7 +20,7 @@ Features include (~~strikethrough~~ = not implemented yet)
 - OTA over the air firmware update
 - turn off and on relay from onboard button ~~and external button~~
 
-If you want a more complete/complex firmware you should check out the [Sonoff-MQTT-OTA-Arduino](https://github.com/arendst/Sonoff-MQTT-OTA-Arduino) project.
+If you want a more complete/complex firmware you should check out the [Sonoff-Tasmota](https://github.com/arendst/Sonoff-Tasmota) project.
 
 ## Getting started
 First of all you will need to solder a 4 or 5 pin header on your Sonoff so you can flash the new firmware.
