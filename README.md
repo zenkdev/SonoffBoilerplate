@@ -8,17 +8,14 @@ This is a replacement firmware (Arduino IDE with ESP8266 core needed) for the ES
 Sonoff is just a small ESP8266 based module, that can toggle mains power on it's output. It has everything included in a nice plastic package.
 See more here [Sonoff manufacturer website](https://www.itead.cc/sonoff-wifi-wireless-switch.html)
 
-## What can your code do for me?
-The goal of this is to give you a kickstart. Using it as a starter package you should be fairly advanced on the way of making your Sonoff behave the way you want. Adding, removing features should now be trivial.
-
-Features include (~~strikethrough~~ = not implemented yet)
+## Features include
 - wifi credentials configuration/onboarding using [WiFiManager](https://github.com/tzapu/WiFiManager)
-- web configuration portal to setup tokes, servers, ports, etc
+- web configuration portal to setup module type, sensors, Blynk, MQTT, etc
 - Blynk integration
 - MQTT integration
-- ~~HTTP sever API~~
+- HTTP sever API
 - OTA over the air firmware update
-- turn off and on relay from onboard button ~~and external button~~
+- turn off and on relay from onboard button
 
 If you want a more complete/complex firmware you should check out the [Sonoff-Tasmota](https://github.com/arendst/Sonoff-Tasmota) project.
 
@@ -44,19 +41,19 @@ It uses the basic ArduinoOTA available in Arduino IDE port of the ESP8266 core.
 ### Blynk App 
 Blynk App is supported in both local server or cloud mode. 
 Add the token and the server details in the web config portal.
+Relay pins are V1-V4 (depend on module type), sensor pins are V11-V14. V30 is restart pin and V31 is full reset pin.
 
 ### MQTT Support
 MQTT has now been added
-You can send messages to `deviceId/channel-0` with the following parameters:
+You can send messages to `cmnd/%topic%/POWER%relay_number%` with the following parameters:
 - no parameter (blank) and the device will send it's status back
-- 'on' to turn on
-- 'off' to turn off
-- 'toggle' to toggle between on and off
-The status will come as a response on topic `deviceId/channel-0/status`
+- 'on' to turn relay on
+- 'off' to turn relay off
+- 'toggle' to toggle relay
+The status will come as a response on topic `stat/%topic%/POWER%relay_number%`
+The sensor states will published on `stat/%topic%/SENSOR%sensor_number%`
 
 ### More information
-Here are some posts I wrote on making all this work that you might find helpful
-
 
 Part 1 - Original Sonoff Introduction
 
@@ -71,7 +68,3 @@ Part 3 - Sonoff POW and S20 Smart Socket Introduction
 
 [Sonoff POW and S20 Smart Socket from ITEAD](https://tzapu.com/sonoff-pow-and-s20-smart-socket-itead/)
 
-
-Part 4 - Sonoff S20 firmware replacement
-
-[Coming Soon]()
