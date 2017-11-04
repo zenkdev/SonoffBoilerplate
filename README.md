@@ -1,3 +1,4 @@
+
 # SonoffBoilerplate
 
 This is a fork of [tzapu](https://github.com/tzapu) SonoffBoilerplate project, currently deleted from GitHub.
@@ -7,6 +8,10 @@ This is a replacement firmware (Arduino IDE with ESP8266 core needed) for the ES
 ## What's a "Sonoff"?
 Sonoff is just a small ESP8266 based module, that can toggle mains power on it's output. It has everything included in a nice plastic package.
 See more here [Sonoff manufacturer website](https://www.itead.cc/sonoff-wifi-wireless-switch.html)
+
+## Supported modules
+- Sonoff Basic
+- WeMos D1 mini
 
 ## Features include
 - wifi credentials configuration/onboarding using [WiFiManager](https://github.com/tzapu/WiFiManager)
@@ -25,6 +30,18 @@ First of all you will need to solder a 4 or 5 pin header on your Sonoff so you c
 You will need to download any libraries included, they should all have URLs in the source code mentioned, or you can find them in the Arduino Library Manager.
 
 After you have the header, the libraries installed and a serial to usb dongle ready, power up the module while pressing the onboard button. This should put it into programming mode.
+
+In the Arduino IDE select from `Tools Board Generic ESP8266 Module` ( `Tools Board Generic ESP8285 Module` for CH4 version) and set the following options:
+- Upload Using: Serial
+- Flash Mode: DOUT
+- Flash Frequency: 40MHz
+- CPU Frequency: 80MHz
+- Flash Size: 1M (64K SPIFFS)
+- Debug Port: Disabled
+- Debug Level: None
+- Reset Method: ck
+- Upload Speed: 115200
+- Port: Your COM port connected to sonoff
 
 Flash the firmware, the module should reset afterwards and the green LED should be blinking.
 Slow blink = connecting
