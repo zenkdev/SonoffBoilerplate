@@ -102,7 +102,7 @@ const char HTML_MSG_RSTRT[] PROGMEM =
 "<br/><div style='text-align:center;'>Device will restart in a few seconds</div><br/>";
 const char HTML_BTN_MENU1[] PROGMEM =
 "<br/><form action='cn' method='get'><button>Configuration</button></form>"
-//"<br/><form action='in' method='get'><button>Information</button></form>"
+"<br/><form action='in' method='get'><button>Information</button></form>"
 //"<br/><form action='up' method='get'><button>Firmware upgrade</button></form>"
 //"<br/><form action='cs' method='get'><button>Console</button></form>"
 ;
@@ -130,29 +130,38 @@ const char HTML_FORM_MODULE[] PROGMEM =
 "<fieldset><legend><b>&nbsp;Module parameters&nbsp;</b></legend><form method='get' action='sv'>"
 "<input id='w' name='w' value='6' hidden><input id='r' name='r' value='1' hidden>"
 "<br/><b>Module type</b> ({mt})<br/><select id='mt' name='mt'>";
-const char HTML_RELAY_HOLDTIME[] PROGMEM =
-"<br/><b>Relay hold time (0-3600 seconds)</b><br/><input id='ht' name='ht' length=4 placeholder='0=disable' value='%d'><br/>";
+const char HTML_HOLDTIME[] PROGMEM =
+"<br/><b>Hold time (0-3600 seconds)</b><br/><input id='ht' name='ht' length=4 placeholder='0 to disable option' value='%d'><br/>";
 const char HTML_LNK_ITEM[] PROGMEM =
 "<div><a href='#p' onclick='c(this)'>{v}</a>&nbsp;<span class='q'>{i} {r}%</span></div>";
 const char HTML_LNK_SCAN[] PROGMEM =
 "<div><a href='/w1'>Scan for wifi networks</a></div><br/>";
+const char HTML_FORM_WIFI[] PROGMEM =
+"<fieldset><legend><b>&nbsp;Wifi parameters&nbsp;</b></legend><form method='get' action='sv'>"
+"<input id='w' name='w' value='1' hidden><input id='r' name='r' value='1' hidden>"
+"<br/><b>AP1 SSId</b> (" WIFI_SSID1 ")<br/><input id='s1' name='s1' length=32 placeholder='" WIFI_SSID1 "' value='{s1}'><br/>"
+"<br/><b>AP1 Password</b></br><input id='p1' name='p1' length=64 type='password' placeholder='" WIFI_PASS1 "' value='{p1}'><br/>"
+"<br/><b>AP2 SSId</b> (" WIFI_SSID2 ")<br/><input id='s2' name='s2' length=32 placeholder='" WIFI_SSID2 "' value='{s2}'><br/>"
+"<br/><b>AP2 Password</b></br><input id='p2' name='p2' length=64 type='password' placeholder='" WIFI_PASS2 "' value='{p2}'><br/>"
+"<br/><b>Hostname</b> (" WIFI_HOSTNAME ")<br/><input id='h' name='h' length=32 placeholder='" WIFI_HOSTNAME" ' value='{h1}'><br/>";
 const char HTML_FORM_MQTT[] PROGMEM =
 "<fieldset><legend><b>&nbsp;MQTT parameters&nbsp;</b></legend><form method='get' action='sv'>"
 "<input id='w' name='w' value='2' hidden><input id='r' name='r' value='1' hidden>"
 "<br/><b>Host</b> (" MQTT_HOST ")<br/><input id='mh' name='mh' length=32 placeholder='" MQTT_HOST" ' value='{m1}'><br/>"
 "<br/><b>Port</b> (" STR(MQTT_PORT) ")<br/><input id='ml' name='ml' length=5 placeholder='" STR(MQTT_PORT) "' value='{m2}'><br/>"
 "<br/><b>Client Id</b> ({m0})<br/><input id='mc' name='mc' length=32 placeholder='" MQTT_CLIENT_ID "' value='{m3}'><br/>"
-//"<br/><b>User</b> (" MQTT_USER ")<br/><input id='mu' name='mu' length=32 placeholder='" MQTT_USER "' value='{m4}'><br/>"
-//"<br/><b>Password</b><br/><input id='mp' name='mp' length=32 type='password' placeholder='" MQTT_PASS "' value='{m5}'><br/>"
-"<br/><b>Topic</b> = %topic% (" MQTT_TOPIC ")<br/><input id='mt' name='mt' length=32 placeholder='" MQTT_TOPIC" ' value='{m6}'><br/>"
+"<br/><b>User</b> (" MQTT_USER ")<br/><input id='mu' name='mu' length=32 placeholder='" MQTT_USER "' value='{m4}'><br/>"
+"<br/><b>Password</b><br/><input id='mp' name='mp' length=32 type='password' placeholder='" MQTT_PASS "' value='{m5}'><br/>"
+//"<br/><b>Topic</b> = %topic% (" MQTT_TOPIC ")<br/><input id='mt' name='mt' length=32 placeholder='" MQTT_TOPIC" ' value='{m6}'><br/>"
+"<br/><b>Topic</b> = %topic%<br/><input id='mt' name='mt' length=32 placeholder='leave this field empty to disable option' value='{m6}'><br/>"
 //"<br/><b>Full Topic</b> (" MQTT_FULLTOPIC ")<br/><input id='mf' name='mf' length=80 placeholder='" MQTT_FULLTOPIC" ' value='{m7}'><br/>"
 ;
 const char HTML_FORM_BLYNK[] PROGMEM =
 "<fieldset><legend><b>&nbsp;BLYNK parameters&nbsp;</b></legend><form method='get' action='sv'>"
 "<input id='w' name='w' value='4' hidden><input id='r' name='r' value='1' hidden>"
-"<br/><b>Token</b> (" BLYNK_TOKEN ")<br/><input id='mt' name='mt' length=32 placeholder='" BLYNK_TOKEN" ' value='{m1}'><br/>"
-"<br/><b>Server</b> (" BLYNK_SERVER ")<br/><input id='mh' name='mh' length=32 placeholder='" BLYNK_SERVER" ' value='{m2}'><br/>"
-"<br/><b>Port</b> (" STR(BLYNK_PORT) ")<br/><input id='ml' name='ml' length=5 placeholder='" STR(BLYNK_PORT) "' value='{m3}'><br/>";
+"<br/><b>Token</b><input id='bt' name='bt' length=32 placeholder='leave this field empty to disable option' value='{m1}'><br/>"
+"<br/><b>Server</b> (" BLYNK_SERVER ")<br/><input id='bh' name='bh' length=32 placeholder='" BLYNK_SERVER" ' value='{m2}'><br/>"
+"<br/><b>Port</b> (" STR(BLYNK_PORT) ")<br/><input id='bp' name='bp' length=5 placeholder='" STR(BLYNK_PORT) "' value='{m3}'><br/>";
 const char HTML_FORM_END[] PROGMEM =
 "<br/><button type='submit'>Save</button></form></fieldset>";
 const char HTML_FORM_RST[] PROGMEM =
@@ -192,7 +201,6 @@ const char HDR_CTYPE_JSON[] PROGMEM = "application/json";
 const char HDR_CTYPE_STREAM[] PROGMEM = "application/octet-stream";
 
 #define DNS_PORT 53
-enum http_t { HTTP_OFF, HTTP_USER, HTTP_ADMIN, HTTP_MANAGER };
 
 DNSServer *dnsServer;
 ESP8266WebServer *webServer;
@@ -204,7 +212,7 @@ uint8_t _uploaderror = 0;
 uint8_t _uploadfiletype;
 uint8_t _colcount;
 
-void startWebserver(int type)
+void startWebserver(int type, IPAddress ipweb)
 {
 	if (!_httpflag) {
 		if (!webServer) {
@@ -212,8 +220,8 @@ void startWebserver(int type)
 			webServer->on("/", handleRoot);
 			webServer->on("/cn", handleConfig);
 			webServer->on("/md", handleModule);
-			//webServer->on("/w1", handleWifi1);
-			//webServer->on("/w0", handleWifi0);
+			webServer->on("/w1", handleWifi1);
+			webServer->on("/w0", handleWifi0);
 #ifdef USE_MQTT
 			webServer->on("/mq", handleMqtt);
 #endif // USE_MQTT
@@ -233,12 +241,16 @@ void startWebserver(int type)
 			//webServer->on("/cs", handleConsole);
 			//webServer->on("/ax", handleAjax);
 			webServer->on("/ay", handleAjax2);
-			//webServer->on("/in", handleInfo);
+			webServer->on("/in", handleInfo);
 			webServer->on("/rb", handleRestart);
 			webServer->on("/fwlink", handleRoot);  // Microsoft captive portal. Maybe not needed. Might be handled by notFound handler.
 			webServer->onNotFound(handleNotFound);
 		}
 		webServer->begin(); // Web server start
+	}
+	if (_httpflag != type) {
+		Serial.printf("HTP: Web server active on %s%s with IP address %s\n",
+			Hostname, (mDNSbegun) ? ".local" : "", ipweb.toString().c_str());
 	}
 	if (type) _httpflag = type;
 }
@@ -247,18 +259,25 @@ void stopWebserver()
 {
 	if (_httpflag) {
 		webServer->close();
+		webServer = NULL;
 		_httpflag = HTTP_OFF;
+		Serial.print("HTP: Web server stopped\n");
 	}
 }
 
 void beginWifiManager()
 {
+	//entered config mode, make led toggle faster
+	ticker.attach(0.2, tick);
+
 	// setup AP
 	if ((WL_CONNECTED == WiFi.status()) && (static_cast<uint32_t>(WiFi.localIP()) != 0)) {
 		WiFi.mode(WIFI_AP_STA);
+		Serial.print("WIF: Wifimanager set AccessPoint and keep Station\n");
 	}
 	else {
 		WiFi.mode(WIFI_AP);
+		Serial.print("WIF: Wifimanager set AccessPoint\n");
 	}
 
 	stopWebserver();
@@ -270,7 +289,7 @@ void beginWifiManager()
 	dnsServer->setErrorReplyCode(DNSReplyCode::NoError);
 	dnsServer->start(DNS_PORT, "*", WiFi.softAPIP());
 
-	startWebserver(HTTP_MANAGER);
+	startWebserver(HTTP_MANAGER, WiFi.softAPIP());
 }
 
 void pollDnsWeb()
@@ -299,12 +318,12 @@ void showPage(String &page)
 	page.replace(F("{ha}"), modules[settings.module]);
 	//page.replace(F("{h}"), sysCfg.friendlyname[0]);
 	page.replace(F("{h}"), Hostname);
-	//if (HTTP_MANAGER == _httpflag) {
+	if (HTTP_MANAGER == _httpflag) {
 	//	if (WIFI_configCounter()) {
 	//		page.replace(F("<body>"), F("<body onload='u()'>"));
 	//		page += FPSTR(HTTP_COUNTER);
 	//	}
-	//}
+	}
 	page += FPSTR(HTML_END);
 	setHeader();
 	webServer->send(200, FPSTR(HDR_CTYPE_HTML), page);
@@ -316,10 +335,10 @@ void handleRoot()
 		return;
 	}
 
-	//if (HTTP_MANAGER == _httpflag) {
-	//	handleWifi0();
-	//}
-	//else 
+	if (HTTP_MANAGER == _httpflag) {
+		handleWifi0();
+	}
+	else
 	{
 		char stemp[10], line[100];
 		String page = FPSTR(HTML_HEAD);
@@ -410,7 +429,7 @@ void handleAjax2()
 		page += F("<tr>");
 		for (byte idx = 1; idx <= MaxRelay; idx++) {
 			snprintf_P(line, sizeof(line), PSTR("<td style='width:%d%'><div style='text-align:center;font-weight:bold;font-size:%dpx'>%s</div></td>"),
-				100 / MaxRelay, 70 - (MaxRelay * 8), getStateText(digitalRead(settings.relayPins[idx - 1])));
+				100 / MaxRelay, 70 - (MaxRelay * 8), getStateText(digitalRead(settings.relay_pin[idx - 1])));
 			page += line;
 		}
 		page += F("</tr></table>");
@@ -468,22 +487,122 @@ void handleModule()
 	page += F("</select></br>");
 
 	for (byte i = 0; i < MAX_SENSOR; i++) {
-		if (settings.sensorPins[i] != NOT_A_PIN) {
-			snprintf_P(line, sizeof(line), PSTR("<br/><b>GPIO%d</b><select id='g%d' name='g%d'>"), settings.sensorPins[i], i, i);
+		if (settings.sensor_pin[i] != NOT_A_PIN) {
+			snprintf_P(line, sizeof(line), PSTR("<br/><b>GPIO%d</b><select id='g%d' name='g%d'>"), settings.sensor_pin[i], i, i);
 			page += line;
 			for (byte v = 0; v < SENSOR_END; v++) {
 				snprintf_P(stemp, sizeof(stemp), sensors[v]);
-				snprintf_P(line, sizeof(line), PSTR("<option%s value='%d'>%02d %s</option>"), (v == settings.sensorModes[i]) ? " selected" : "", v, v, stemp);
+				snprintf_P(line, sizeof(line), PSTR("<option%s value='%d'>%02d %s</option>"), (v == settings.sensor_mode[i]) ? " selected" : "", v, v, stemp);
 				page += line;
 			}
 			page += F("</select></br>");
 		}
 	}
-	snprintf_P(line, sizeof(line), HTML_RELAY_HOLDTIME, settings.relayHoldTime);
+
+	snprintf_P(line, sizeof(line), HTML_HOLDTIME, settings.hold_time);
 	page += line;
 
 	page += FPSTR(HTML_FORM_END);
 	page += FPSTR(HTML_BTN_CONF);
+	showPage(page);
+}
+
+void handleWifi1()
+{
+	handleWifi(true);
+}
+
+void handleWifi0()
+{
+	handleWifi(false);
+}
+
+void handleWifi(boolean scan)
+{
+	if (httpUser()) {
+		return;
+	}
+
+	String page = FPSTR(HTML_HEAD);
+	page.replace(F("{v}"), "Configure WiFi");
+
+	if (scan) {
+		int n = WiFi.scanNetworks();
+		if (0 == n) {
+			page += "No networks found";
+			page += F(". Refresh to scan again.");
+		}
+		else {
+			//sort networks
+			int indices[n];
+			for (int i = 0; i < n; i++) {
+				indices[i] = i;
+			}
+
+			// RSSI SORT
+			for (int i = 0; i < n; i++) {
+				for (int j = i + 1; j < n; j++) {
+					if (WiFi.RSSI(indices[j]) > WiFi.RSSI(indices[i])) {
+						std::swap(indices[i], indices[j]);
+					}
+				}
+			}
+
+			// remove duplicates ( must be RSSI sorted )
+			if (_removeDuplicateAPs) {
+				String cssid;
+				for (int i = 0; i < n; i++) {
+					if (-1 == indices[i]) {
+						continue;
+					}
+					cssid = WiFi.SSID(indices[i]);
+					for (int j = i + 1; j < n; j++) {
+						if (cssid == WiFi.SSID(indices[j])) {
+							indices[j] = -1; // set dup aps to index -1
+						}
+					}
+				}
+			}
+
+			//display networks in page
+			for (int i = 0; i < n; i++) {
+				if (-1 == indices[i]) {
+					continue; // skip dups
+				}
+				int quality = WIFI_getRSSIasQuality(WiFi.RSSI(indices[i]));
+
+				if (_minimumQuality == -1 || _minimumQuality < quality) {
+					String item = FPSTR(HTML_LNK_ITEM);
+					String rssiQ;
+					rssiQ += quality;
+					item.replace(F("{v}"), WiFi.SSID(indices[i]));
+					item.replace(F("{r}"), rssiQ);
+					uint8_t auth = WiFi.encryptionType(indices[i]);
+					item.replace(F("{i}"), (ENC_TYPE_WEP == auth) ? F("WEP") : (ENC_TYPE_TKIP == auth) ? F("WPA PSK") : (ENC_TYPE_CCMP == auth) ? F("WPA2 PSK") : (ENC_TYPE_AUTO == auth) ? F("AUTO") : F(""));
+					page += item;
+					delay(0);
+				}
+			}
+			page += "<br/>";
+		}
+	}
+	else {
+		page += FPSTR(HTML_LNK_SCAN);
+	}
+
+	page += FPSTR(HTML_FORM_WIFI);
+	page.replace(F("{h1}"), settings.hostname);
+	page.replace(F("{s1}"), settings.wifi_ssid[0]);
+	page.replace(F("{p1}"), settings.wifi_pwd[0]);
+	page.replace(F("{s2}"), settings.wifi_ssid[1]);
+	page.replace(F("{p2}"), settings.wifi_pwd[1]);
+	page += FPSTR(HTML_FORM_END);
+	if (HTTP_MANAGER == _httpflag) {
+		page += FPSTR(HTML_BTN_RSTRT);
+	}
+	else {
+		page += FPSTR(HTML_BTN_CONF);
+	}
 	showPage(page);
 }
 
@@ -497,15 +616,15 @@ void handleMqtt()
 	String page = FPSTR(HTML_HEAD);
 	page.replace(F("{v}"), F("Configure MQTT"));
 	page += FPSTR(HTML_FORM_MQTT);
-	char str[sizeof(settings.mqttClientID)];
-	getClient(str, MQTT_CLIENT_ID, sizeof(settings.mqttClientID));
+	char str[sizeof(settings.mqtt_clientID)];
+	getClient(str, MQTT_CLIENT_ID, sizeof(settings.mqtt_clientID));
 	page.replace(F("{m0}"), str);
-	page.replace(F("{m1}"), settings.mqttHost);
-	page.replace(F("{m2}"), String(settings.mqttPort));
-	page.replace(F("{m3}"), settings.mqttClientID);
-	//page.replace(F("{m4}"), (sysCfg.mqtt_user[0] == '\0') ? "0" : sysCfg.mqtt_user);
-	//page.replace(F("{m5}"), (sysCfg.mqtt_pwd[0] == '\0') ? "0" : sysCfg.mqtt_pwd);
-	page.replace(F("{m6}"), settings.mqttTopic);
+	page.replace(F("{m1}"), settings.mqtt_host);
+	page.replace(F("{m2}"), String(settings.mqtt_port));
+	page.replace(F("{m3}"), settings.mqtt_clientID);
+	page.replace(F("{m4}"), (settings.mqtt_user[0] == '\0') ? "0" : settings.mqtt_user);
+	page.replace(F("{m5}"), (settings.mqtt_pwd[0] == '\0') ? "0" : settings.mqtt_pwd);
+	page.replace(F("{m6}"), settings.mqtt_topic);
 	//page.replace(F("{m7}"), sysCfg.mqtt_fulltopic);
 	page += FPSTR(HTML_FORM_END);
 	page += FPSTR(HTML_BTN_CONF);
@@ -523,9 +642,9 @@ void handleBlynk()
 	String page = FPSTR(HTML_HEAD);
 	page.replace(F("{v}"), F("Configure BLYNK"));
 	page += FPSTR(HTML_FORM_BLYNK);
-	page.replace(F("{m1}"), settings.blynkToken);
-	page.replace(F("{m2}"), settings.blynkServer);
-	page.replace(F("{m3}"), String(settings.blynkPort));
+	page.replace(F("{m1}"), settings.blynk_token);
+	page.replace(F("{m2}"), settings.blynk_server);
+	page.replace(F("{m3}"), String(settings.blynk_port));
 	page += FPSTR(HTML_FORM_END);
 	page += FPSTR(HTML_BTN_CONF);
 	showPage(page);
@@ -548,44 +667,45 @@ void handleSave()
 		what = atoi(webServer->arg("w").c_str());
 	}
 	switch (what) {
-	case 1:
-		//strlcpy(sysCfg.hostname, (!strlen(webServer->arg("h").c_str())) ? WIFI_HOSTNAME : webServer->arg("h").c_str(), sizeof(sysCfg.hostname));
-		//if (strstr(sysCfg.hostname, "%")) {
-		//	strlcpy(sysCfg.hostname, WIFI_HOSTNAME, sizeof(sysCfg.hostname));
-		//}
-		//strlcpy(sysCfg.sta_ssid[0], (!strlen(webServer->arg("s1").c_str())) ? STA_SSID1 : webServer->arg("s1").c_str(), sizeof(sysCfg.sta_ssid[0]));
-		//strlcpy(sysCfg.sta_pwd[0], (!strlen(webServer->arg("p1").c_str())) ? STA_PASS1 : webServer->arg("p1").c_str(), sizeof(sysCfg.sta_pwd[0]));
-		//strlcpy(sysCfg.sta_ssid[1], (!strlen(webServer->arg("s2").c_str())) ? STA_SSID2 : webServer->arg("s2").c_str(), sizeof(sysCfg.sta_ssid[1]));
-		//strlcpy(sysCfg.sta_pwd[1], (!strlen(webServer->arg("p2").c_str())) ? STA_PASS2 : webServer->arg("p2").c_str(), sizeof(sysCfg.sta_pwd[1]));
-		//snprintf_P(log, sizeof(log), PSTR("HTTP: Wifi Hostname %s, SSID1 %s, Password1 %s, SSID2 %s, Password2 %s"),
-		//	sysCfg.hostname, sysCfg.sta_ssid[0], sysCfg.sta_pwd[0], sysCfg.sta_ssid[1], sysCfg.sta_pwd[1]);
-		//addLog(LOG_LEVEL_INFO, log);
+	case 1: // Wifi
+		strlcpy(settings.hostname, (!strlen(webServer->arg("h").c_str())) ? WIFI_HOSTNAME : webServer->arg("h").c_str(), sizeof(settings.hostname));
+		if (strstr(settings.hostname, "%")) {
+			strlcpy(settings.hostname, WIFI_HOSTNAME, sizeof(settings.hostname));
+		}
+		strlcpy(settings.wifi_ssid[0], (!strlen(webServer->arg("s1").c_str())) ? WIFI_SSID1 : webServer->arg("s1").c_str(), sizeof(settings.wifi_ssid[0]));
+		strlcpy(settings.wifi_pwd[0], (!strlen(webServer->arg("p1").c_str())) ? WIFI_PASS1 : webServer->arg("p1").c_str(), sizeof(settings.wifi_pwd[0]));
+		strlcpy(settings.wifi_ssid[1], (!strlen(webServer->arg("s2").c_str())) ? WIFI_SSID2 : webServer->arg("s2").c_str(), sizeof(settings.wifi_ssid[1]));
+		strlcpy(settings.wifi_pwd[1], (!strlen(webServer->arg("p2").c_str())) ? WIFI_PASS2 : webServer->arg("p2").c_str(), sizeof(settings.wifi_pwd[1]));
 		result += F("<br/>Trying to connect device to network<br/>If it fails reconnect to try again");
 		break;
 #ifdef USE_MQTT
 	case 2: // MQTT
-		strlcpy(stemp, (!strlen(webServer->arg("mt").c_str())) ? MQTT_TOPIC : webServer->arg("mt").c_str(), sizeof(stemp));
+		//strlcpy(stemp, (!strlen(webServer->arg("mt").c_str())) ? MQTT_TOPIC : webServer->arg("mt").c_str(), sizeof(stemp));
+		strlcpy(stemp, webServer->arg("mt").c_str(), sizeof(stemp)); // cant disable mqtt
 		mqttfy(0, stemp);
 		//strlcpy(stemp2, (!strlen(webServer->arg("mf").c_str())) ? MQTT_FULLTOPIC : webServer->arg("mf").c_str(), sizeof(stemp2));
 		//mqttfy(1, stemp2);
-		//if ((strcmp(stemp, sysCfg.mqtt_topic)) || (strcmp(stemp2, sysCfg.mqtt_fulltopic))) {
-		//	mqtt_publish_topic_P(2, PSTR("LWT"), (sysCfg.flag.mqtt_offline) ? "Offline" : "", true);  // Offline or remove previous retained topic
-		//}
-		strlcpy(settings.mqttTopic, stemp, sizeof(settings.mqttTopic));
+		if (strcmp(stemp, settings.mqtt_topic)) {// || (strcmp(stemp2, sysCfg.mqtt_fulltopic))) {
+			// Offline or remove previous retained topic
+			char topic[TOPSZ];
+			sprintf(topic, "tele/%s/LWT", settings.mqtt_topic);
+			mqttClient.publish(topic, "", true);
+		}
+		strlcpy(settings.mqtt_topic, stemp, sizeof(settings.mqtt_topic));
 		//strlcpy(sysCfg.mqtt_fulltopic, stemp2, sizeof(sysCfg.mqtt_fulltopic));
-		strlcpy(settings.mqttHost, (!strlen(webServer->arg("mh").c_str())) ? MQTT_HOST : webServer->arg("mh").c_str(), sizeof(settings.mqttHost));
-		settings.mqttPort = (!strlen(webServer->arg("ml").c_str())) ? MQTT_PORT : atoi(webServer->arg("ml").c_str());
-		strlcpy(settings.mqttClientID, (!strlen(webServer->arg("mc").c_str())) ? MQTT_CLIENT_ID : webServer->arg("mc").c_str(), sizeof(settings.mqttClientID));
-		//strlcpy(sysCfg.mqtt_user, (!strlen(webServer->arg("mu").c_str())) ? MQTT_USER : (!strcmp(webServer->arg("mu").c_str(), "0")) ? "" : webServer->arg("mu").c_str(), sizeof(sysCfg.mqtt_user));
-		//strlcpy(sysCfg.mqtt_pwd, (!strlen(webServer->arg("mp").c_str())) ? MQTT_PASS : (!strcmp(webServer->arg("mp").c_str(), "0")) ? "" : webServer->arg("mp").c_str(), sizeof(sysCfg.mqtt_pwd));
+		strlcpy(settings.mqtt_host, (!strlen(webServer->arg("mh").c_str())) ? MQTT_HOST : webServer->arg("mh").c_str(), sizeof(settings.mqtt_host));
+		settings.mqtt_port = (!strlen(webServer->arg("ml").c_str())) ? MQTT_PORT : atoi(webServer->arg("ml").c_str());
+		strlcpy(settings.mqtt_clientID, (!strlen(webServer->arg("mc").c_str())) ? MQTT_CLIENT_ID : webServer->arg("mc").c_str(), sizeof(settings.mqtt_clientID));
+		strlcpy(settings.mqtt_user, (!strlen(webServer->arg("mu").c_str())) ? MQTT_USER : (!strcmp(webServer->arg("mu").c_str(), "0")) ? "" : webServer->arg("mu").c_str(), sizeof(settings.mqtt_user));
+		strlcpy(settings.mqtt_pwd, (!strlen(webServer->arg("mp").c_str())) ? MQTT_PASS : (!strcmp(webServer->arg("mp").c_str(), "0")) ? "" : webServer->arg("mp").c_str(), sizeof(settings.mqtt_pwd));
 		Serial.print("HTTP: MQTT Host ");
-		Serial.print(settings.mqttHost);
+		Serial.print(settings.mqtt_host);
 		Serial.print(", Port ");
-		Serial.print(settings.mqttPort);
+		Serial.print(settings.mqtt_port);
 		Serial.print(", Client ");
-		Serial.print(settings.mqttClientID);
+		Serial.print(settings.mqtt_clientID);
 		Serial.print(", Topic ");
-		Serial.println(settings.mqttTopic);
+		Serial.println(settings.mqtt_topic);
 		break;
 #endif // USE_MQTT
 	case 3:
@@ -603,15 +723,16 @@ void handleSave()
 		break;
 #ifdef USE_BLYNK
 	case 4: // BLYNK
-		strlcpy(settings.blynkToken, (!strlen(webServer->arg("mt").c_str())) ? BLYNK_TOKEN : webServer->arg("mt").c_str(), sizeof(settings.blynkToken));
-		strlcpy(settings.blynkServer, (!strlen(webServer->arg("mh").c_str())) ? MQTT_HOST : webServer->arg("mh").c_str(), sizeof(settings.blynkServer));
-		settings.blynkPort = (!strlen(webServer->arg("ml").c_str())) ? MQTT_PORT : atoi(webServer->arg("ml").c_str());
+		//strlcpy(settings.blynk_token, (!strlen(webServer->arg("bt").c_str())) ? BLYNK_TOKEN : webServer->arg("bt").c_str(), sizeof(settings.blynk_token));
+		strlcpy(settings.blynk_token, webServer->arg("bt").c_str(), sizeof(settings.blynk_token)); // cant diable blynk
+		strlcpy(settings.blynk_server, (!strlen(webServer->arg("bh").c_str())) ? BLYNK_SERVER : webServer->arg("bh").c_str(), sizeof(settings.blynk_server));
+		settings.blynk_port = (!strlen(webServer->arg("bp").c_str())) ? BLYNK_PORT : atoi(webServer->arg("bp").c_str());
 		Serial.print("HTTP: BLYNK Token ");
-		Serial.print(settings.blynkToken);
+		Serial.print(settings.blynk_token);
 		Serial.print(", Server ");
-		Serial.print(settings.blynkServer);
+		Serial.print(settings.blynk_server);
 		Serial.print(", Port ");
-		Serial.println(settings.blynkPort);
+		Serial.println(settings.blynk_port);
 		break;
 #endif // USE_BLYNK
 	case 5:
@@ -633,12 +754,12 @@ void handleSave()
 		byte new_modflg = (settings.module != new_module);
 		settings.module = new_module;
 		if (new_modflg) {
-			module_setup();
+			setup_module();
 		}
 		else {
 			for (byte i = 0; i < MAX_SENSOR; i++) {
 				snprintf_P(stemp, sizeof(stemp), PSTR("g%d"), i);
-				settings.sensorModes[i] = (!strlen(webServer->arg(stemp).c_str())) ? 0 : atoi(webServer->arg(stemp).c_str());
+				settings.sensor_mode[i] = (!strlen(webServer->arg(stemp).c_str())) ? 0 : atoi(webServer->arg(stemp).c_str());
 			}
 			int holdTime = (!strlen(webServer->arg("ht").c_str())) ? 0 : atoi(webServer->arg("ht").c_str());
 			if (holdTime < 0) {
@@ -647,7 +768,7 @@ void handleSave()
 			else if (holdTime > 3600) {
 				holdTime = 3600;
 			}
-			settings.relayHoldTime = holdTime;
+			settings.hold_time = holdTime;
 			break;
 		}
 	}
@@ -714,7 +835,7 @@ void handleCmnd()
 	if (valid) {
 		//byte curridx = logidx;
 		if (strlen(webServer->arg("cmnd").c_str())) {
-			//      snprintf_P(svalue, sizeof(svalue), webServer->arg("cmnd").c_str());
+			//snprintf_P(svalue, sizeof(svalue), webServer->arg("cmnd").c_str());
 			snprintf_P(svalue, sizeof(svalue), PSTR("%s"), webServer->arg("cmnd").c_str());
 			//byte syslog_now = syslog_level;
 			//syslog_level = 0;  // Disable UDP syslog to not trigger hardware WDT
@@ -753,6 +874,113 @@ void handleCmnd()
 		message = F("Need user=<username>&password=<password>\n");
 	}
 	webServer->send(200, FPSTR(HDR_CTYPE_PLAIN), message);
+}
+
+void handleInfo()
+{
+	if (httpUser()) {
+		return;
+	}
+	//addLog_P(LOG_LEVEL_DEBUG, S_LOG_HTTP, S_INFORMATION);
+
+	char stopic[TOPSZ];
+
+	int freeMem = ESP.getFreeHeap();
+
+	String page = FPSTR(HTML_HEAD);
+	page.replace(F("{v}"), FPSTR("Information"));
+	//  page += F("<fieldset><legend><b>&nbsp;Information&nbsp;</b></legend>");
+	page += F("<style>td{padding:0px 5px;}</style>");
+	page += F("<table style'width:100%;'>");
+	//page += F("<tr><th>Program Version</th><td>"); page += Version; page += F("</td></tr>");
+	//page += F("<tr><th>Build Date & Time</th><td>"); page += getBuildDateTime(); page += F("</td></tr>");
+	page += F("<tr><th>Core/SDK Version</th><td>"); page += ESP.getCoreVersion(); page += F("/"); page += String(ESP.getSdkVersion()); page += F("</td></tr>");
+	//page += F("<tr><th>Uptime</th><td>"); page += String(uptime); page += F(" Hours</td></tr>");
+	//snprintf_P(stopic, sizeof(stopic), PSTR(" at %X"), CFG_Address());
+	//page += F("<tr><th>Flash write Count</th><td>"); page += String(sysCfg.saveFlag); page += stopic; page += F("</td></tr>");
+	//page += F("<tr><th>Boot Count</th><td>"); page += String(sysCfg.bootcount); page += F("</td></tr>");
+	//page += F("<tr><th>Restart Reason</th><td>"); page += getResetReason(); page += F("</td></tr>");
+	//for (byte i = 0; i < Maxdevice; i++) {
+	//	page += F("<tr><th>" D_FRIENDLY_NAME " ");
+	//	page += i + 1;
+	//	page += F("</th><td>"); page += sysCfg.friendlyname[i]; page += F("</td></tr>");
+	//}
+	page += F("<tr><td>&nbsp;</td></tr>");
+	page += F("<tr><th>AP"); page += String(settings.wifi_active + 1);
+	page += F(" SSId (RSSI)</th><td>"); page += settings.wifi_ssid[settings.wifi_active]; page += F(" ("); page += WIFI_getRSSIasQuality(WiFi.RSSI()); page += F("%)</td></tr>");
+	page += F("<tr><th>Hostname</th><td>"); page += Hostname; page += F("</td></tr>");
+	if (static_cast<uint32_t>(WiFi.localIP()) != 0) {
+		page += F("<tr><th>IP Address</th><td>"); page += WiFi.localIP().toString(); page += F("</td></tr>");
+		//page += F("<tr><th>" D_GATEWAY "</th><td>"); page += IPAddress(sysCfg.ip_address[1]).toString(); page += F("</td></tr>");
+		//page += F("<tr><th>" D_SUBNET_MASK "</th><td>"); page += IPAddress(sysCfg.ip_address[2]).toString(); page += F("</td></tr>");
+		//page += F("<tr><th>" D_DNS_SERVER "</th><td>"); page += IPAddress(sysCfg.ip_address[3]).toString(); page += F("</td></tr>");
+		page += F("<tr><th>MAC Address</th><td>"); page += WiFi.macAddress(); page += F("</td></tr>");
+	}
+	if (static_cast<uint32_t>(WiFi.softAPIP()) != 0) {
+		page += F("<tr><th>AP IP Address</th><td>"); page += WiFi.softAPIP().toString(); page += F("</td></tr>");
+		page += F("<tr><th>AP Gateway</th><td>"); page += WiFi.softAPIP().toString(); page += F("</td></tr>");
+		page += F("<tr><th>AP MAC Address</th><td>"); page += WiFi.softAPmacAddress(); page += F("</td></tr>");
+	}
+	page += F("<tr><td>&nbsp;</td></tr>");
+	if (mqttEnabled) {
+		page += F("<tr><th>MQTT Host</th><td>"); page += settings.mqtt_host; page += F("</td></tr>");
+		page += F("<tr><th>MQTT Port</th><td>"); page += String(settings.mqtt_port); page += F("</td></tr>");
+		//page += F("<tr><th>" D_MQTT_CLIENT " &<br/>&nbsp;" D_FALLBACK_TOPIC "</th><td>"); page += MQTTClient; page += F("</td></tr>");
+		page += F("<tr><th>MQTT Client</th><td>"); page += mqttClientID; page += F("</td></tr>");
+		page += F("<tr><th>MQTT User</th><td>"); page += settings.mqtt_user; page += F("</td></tr>");
+		page += F("<tr><th>MQTT Topic</th><td>"); page += settings.mqtt_topic; page += F("</td></tr>");
+		//page += F("<tr><th>" D_MQTT_GROUP_TOPIC "</th><td>"); page += sysCfg.mqtt_grptopic; page += F("</td></tr>");
+		//getTopic_P(stopic, 0, sysCfg.mqtt_topic, "");
+		//page += F("<tr><th>" D_MQTT_FULL_TOPIC "</th><td>"); page += stopic; page += F("</td></tr>");
+
+	}
+	else {
+		page += F("<tr><th>MQTT</th><td>Disabled</td></tr>");
+	}
+	page += F("<tr><td>&nbsp;</td></tr>");
+//	page += F("<tr><th>" D_EMULATION "</th><td>");
+//#ifdef USE_EMULATION
+//	if (EMUL_WEMO == sysCfg.flag.emulation) {
+//		page += F(D_BELKIN_WEMO);
+//	}
+//	else if (EMUL_HUE == sysCfg.flag.emulation) {
+//		page += F(D_HUE_BRIDGE);
+//	}
+//	else {
+//		page += F(D_NONE);
+//	}
+//#else
+//	page += F(D_DISABLED);
+//#endif // USE_EMULATION
+//	page += F("</td></tr>");
+
+	page += F("<tr><th>mDNS Discovery</th><td>");
+#ifdef USE_DISCOVERY
+	page += F("Enabled");
+	page += F("</td></tr>");
+	page += F("<tr><th>mDNS Advertise</th><td>");
+#ifdef WEBSERVER_ADVERTISE
+	page += F("Web Server");
+#else
+	page += F("Disabled");
+#endif // WEBSERVER_ADVERTISE
+#else
+	page += F("Disabled");
+#endif // USE_DISCOVERY
+	page += F("</td></tr>");
+
+	page += F("<tr><td>&nbsp;</td></tr>");
+	page += F("<tr><th>ESP Chip Id</th><td>"); page += String(ESP.getChipId()); page += F("</td></tr>");
+	page += F("<tr><th>Flash Chip Id</th><td>"); page += String(ESP.getFlashChipId()); page += F("</td></tr>");
+	page += F("<tr><th>Flash Size</th><td>"); page += String(ESP.getFlashChipRealSize() / 1024); page += F("kB</td></tr>");
+	page += F("<tr><th>Program Flash Size</th><td>"); page += String(ESP.getFlashChipSize() / 1024); page += F("kB</td></tr>");
+	page += F("<tr><th>Program Size</th><td>"); page += String(ESP.getSketchSize() / 1024); page += F("kB</td></tr>");
+	page += F("<tr><th>Free Program Space</th><td>"); page += String(ESP.getFreeSketchSpace() / 1024); page += F("kB</td></tr>");
+	page += F("<tr><th>Free Memory</th><td>"); page += String(freeMem / 1024); page += F("kB</td></tr>");
+	page += F("</table>");
+	//  page += F("</fieldset>");
+	page += FPSTR(HTML_BTN_MAIN);
+	showPage(page);
 }
 
 void handleRestart()
