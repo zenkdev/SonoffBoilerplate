@@ -3,6 +3,8 @@
 
 // Supported hardware modules
 const char modules[MAX_MODULE][15] PROGMEM = { "WeMos D1 mini", "Sonoff Basic", "Sonoff Dual", "Sonoff TH", "S20 Socket" };
+// Supported led model
+const char ledmodes[MAX_LED_OPTION][18] PROGMEM = { "Off", "System", "System & Relay", "System & Sensor" };
 
 void setup_module() {
 	switch (settings.module)
@@ -368,10 +370,12 @@ void WIFI_config(uint8_t type)
 		_wificounter = _wifiConfigCounter + 5;
 
 		// start ticker with 0.5 because we start in AP mode and try to connect
-		ticker.attach(0.5, tick);
+		if (settings.led_mode >= LED_SYSTEM) {
+			led_blinks = 19999; // led blinks
+		}
 
 		if (WIFI_RESTART == _wificonfigflag) {
-			restartflag = 2;
+			restart_flag = 2;
 		}
 		else if (WIFI_SMARTCONFIG == _wificonfigflag) {
 			Serial.print("WIF: SmartConfig active for 1 minute\n");
@@ -454,6 +458,9 @@ void WIFI_check_ip()
 		_wifistatus = WL_CONNECTED;
 	}
 	else {
+		//if (settings.led_mode >= LED_SYSTEM) {
+		//	led_blinks = 9999; // slow blinks
+		//}
 		_wifistatus = WiFi.status();
 		switch (_wifistatus) {
 		case WL_CONNECTED:
@@ -545,7 +552,7 @@ void WIFI_Check(uint8_t param)
 				if (WIFI_SMARTCONFIG == _wificonfigflag) {
 					WiFi.stopSmartConfig();
 				}
-				restartflag = 2;
+				restart_flag = 2;
 			}
 		}
 		else {
@@ -555,7 +562,10 @@ void WIFI_Check(uint8_t param)
 				WIFI_check_ip();
 			}
 			if ((WL_CONNECTED == WiFi.status()) && (static_cast<uint32_t>(WiFi.localIP()) != 0) && !_wificonfigflag) {
-				ticker.detach(); // stop ticker couse you have connected to the WiFi
+				//if (led_blinks) {
+				//	led_blinks = 0; // stop led blinks couse you have connected to the WiFi
+				//	led_set(0);
+				//}
 #ifdef USE_DISCOVERY
 				if (!mDNSbegun) {
 					mDNSbegun = MDNS.begin(Hostname);
@@ -606,8 +616,8 @@ int WIFI_State()
 
 void WIFI_Connect()
 {
-	// start ticker with 0.5 because we start in AP mode and try to connect
-	ticker.attach(0.5, tick);
+	//// start ticker with 0.5 because we start in AP mode and try to connect
+	//ticker.attach(0.5, tick);
 
 	WiFi.persistent(false);   // Solve possible wifi init errors
 	_wifistatus = 0;

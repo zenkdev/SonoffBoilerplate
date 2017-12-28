@@ -58,13 +58,13 @@ void sensor_checkState() {
         // publish new sensor state
         oldStates[i] = sensor_state[i];
 #ifdef USE_BLYNK
-		if (blynkEnabled) {
+		if (blynk_enabled) {
 			publish_blynk(i + 1);
 		}
 #endif
 
 #ifdef USE_MQTT
-		if (mqttEnabled) {
+		if (mqtt_enabled) {
 			publish_mqtt(i + 1);
 		}
 #endif
@@ -86,6 +86,13 @@ void sensor_checkState() {
     // publish power
     pwrsns = npwr;
     do_cmnd_power(1, pwrsns ? 1 : 3); // hold on instead of turn off
+
+	// led control
+	if (settings.led_mode == LED_SYSTEM_SENSOR) {
+		if (pwrsns) {
+			led_blinks = 5; // Five blinks
+		}
+	}
   }
 }
 

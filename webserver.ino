@@ -130,8 +130,13 @@ const char HTML_FORM_MODULE[] PROGMEM =
 "<fieldset><legend><b>&nbsp;Module parameters&nbsp;</b></legend><form method='get' action='sv'>"
 "<input id='w' name='w' value='6' hidden><input id='r' name='r' value='1' hidden>"
 "<br/><b>Module type</b> ({mt})<br/><select id='mt' name='mt'>";
+const char HTML_LEDMODE[] PROGMEM =
+"<br/><b>Led mode</b> ({lm})<br/><select id='lm' name='lm'>";
 const char HTML_HOLDTIME[] PROGMEM =
-"<br/><b>Hold time (0-3600 seconds)</b><br/><input id='ht' name='ht' length=4 placeholder='0 to disable option' value='%d'><br/>";
+"<br/><b>Hold time</b> (" STR(HOLD_TIME) ")<br/><input id='ht' name='ht' length=4 placeholder='" STR(HOLD_TIME) "' value='{ht}'><br/>";
+const char HTML_TELEPERIOD[] PROGMEM =
+"<br/><b>Telemetry period</b> (" STR(TELE_PERIOD) ")<br/><input id='lt' name='lt' placeholder='" STR(TELE_PERIOD) "' value='{lt}'><br/>";
+
 const char HTML_LNK_ITEM[] PROGMEM =
 "<div><a href='#p' onclick='c(this)'>{v}</a>&nbsp;<span class='q'>{i} {r}%</span></div>";
 const char HTML_LNK_SCAN[] PROGMEM =
@@ -140,9 +145,9 @@ const char HTML_FORM_WIFI[] PROGMEM =
 "<fieldset><legend><b>&nbsp;Wifi parameters&nbsp;</b></legend><form method='get' action='sv'>"
 "<input id='w' name='w' value='1' hidden><input id='r' name='r' value='1' hidden>"
 "<br/><b>AP1 SSId</b> (" WIFI_SSID1 ")<br/><input id='s1' name='s1' length=32 placeholder='" WIFI_SSID1 "' value='{s1}'><br/>"
-"<br/><b>AP1 Password</b></br><input id='p1' name='p1' length=64 type='password' placeholder='" WIFI_PASS1 "' value='{p1}'><br/>"
+"<br/><b>AP1 Password</b><br/><input id='p1' name='p1' length=64 type='password' placeholder='" WIFI_PASS1 "' value='{p1}'><br/>"
 "<br/><b>AP2 SSId</b> (" WIFI_SSID2 ")<br/><input id='s2' name='s2' length=32 placeholder='" WIFI_SSID2 "' value='{s2}'><br/>"
-"<br/><b>AP2 Password</b></br><input id='p2' name='p2' length=64 type='password' placeholder='" WIFI_PASS2 "' value='{p2}'><br/>"
+"<br/><b>AP2 Password</b><br/><input id='p2' name='p2' length=64 type='password' placeholder='" WIFI_PASS2 "' value='{p2}'><br/>"
 "<br/><b>Hostname</b> (" WIFI_HOSTNAME ")<br/><input id='h' name='h' length=32 placeholder='" WIFI_HOSTNAME" ' value='{h1}'><br/>";
 const char HTML_FORM_MQTT[] PROGMEM =
 "<fieldset><legend><b>&nbsp;MQTT parameters&nbsp;</b></legend><form method='get' action='sv'>"
@@ -152,14 +157,11 @@ const char HTML_FORM_MQTT[] PROGMEM =
 "<br/><b>Client Id</b> ({m0})<br/><input id='mc' name='mc' length=32 placeholder='" MQTT_CLIENT_ID "' value='{m3}'><br/>"
 "<br/><b>User</b> (" MQTT_USER ")<br/><input id='mu' name='mu' length=32 placeholder='" MQTT_USER "' value='{m4}'><br/>"
 "<br/><b>Password</b><br/><input id='mp' name='mp' length=32 type='password' placeholder='" MQTT_PASS "' value='{m5}'><br/>"
-//"<br/><b>Topic</b> = %topic% (" MQTT_TOPIC ")<br/><input id='mt' name='mt' length=32 placeholder='" MQTT_TOPIC" ' value='{m6}'><br/>"
-"<br/><b>Topic</b> = %topic%<br/><input id='mt' name='mt' length=32 placeholder='leave this field empty to disable option' value='{m6}'><br/>"
-//"<br/><b>Full Topic</b> (" MQTT_FULLTOPIC ")<br/><input id='mf' name='mf' length=80 placeholder='" MQTT_FULLTOPIC" ' value='{m7}'><br/>"
-;
+"<br/><b>Topic</b> = %topic%<br/><input id='mt' name='mt' length=32 placeholder='leave this field empty to disable option' value='{m6}'><br/>";
 const char HTML_FORM_BLYNK[] PROGMEM =
 "<fieldset><legend><b>&nbsp;BLYNK parameters&nbsp;</b></legend><form method='get' action='sv'>"
 "<input id='w' name='w' value='4' hidden><input id='r' name='r' value='1' hidden>"
-"<br/><b>Token</b><input id='bt' name='bt' length=32 placeholder='leave this field empty to disable option' value='{m1}'><br/>"
+"<br/><b>Token</b><br/><input id='bt' name='bt' length=32 placeholder='" BLYNK_TOKEN "' value='{m1}'><br/>"
 "<br/><b>Server</b> (" BLYNK_SERVER ")<br/><input id='bh' name='bh' length=32 placeholder='" BLYNK_SERVER" ' value='{m2}'><br/>"
 "<br/><b>Port</b> (" STR(BLYNK_PORT) ")<br/><input id='bp' name='bp' length=5 placeholder='" STR(BLYNK_PORT) "' value='{m3}'><br/>";
 const char HTML_FORM_END[] PROGMEM =
@@ -267,8 +269,10 @@ void stopWebserver()
 
 void beginWifiManager()
 {
-	//entered config mode, make led toggle faster
-	ticker.attach(0.2, tick);
+	//entered config mode, make led blinks
+	if (settings.led_mode >= LED_SYSTEM) {
+		led_blinks = 1999;
+	}
 
 	// setup AP
 	if ((WL_CONNECTED == WiFi.status()) && (static_cast<uint32_t>(WiFi.localIP()) != 0)) {
@@ -319,10 +323,10 @@ void showPage(String &page)
 	//page.replace(F("{h}"), sysCfg.friendlyname[0]);
 	page.replace(F("{h}"), Hostname);
 	if (HTTP_MANAGER == _httpflag) {
-	//	if (WIFI_configCounter()) {
-	//		page.replace(F("<body>"), F("<body onload='u()'>"));
-	//		page += FPSTR(HTTP_COUNTER);
-	//	}
+		if (WIFI_configCounter()) {
+			page.replace(F("<body>"), F("<body onload='u()'>"));
+			page += FPSTR(HTML_COUNTER);
+		}
 	}
 	page += FPSTR(HTML_END);
 	setHeader();
@@ -484,23 +488,39 @@ void handleModule()
 		snprintf_P(line, sizeof(line), PSTR("<option%s value='%d'>%02d %s</option>"), (idx == settings.module) ? " selected" : "", idx, idx + 1, stemp);
 		page += line;
 	}
-	page += F("</select></br>");
+	page += F("</select><br/>");
 
+	page += F("<br/><table>");
 	for (byte i = 0; i < MAX_SENSOR; i++) {
 		if (settings.sensor_pin[i] != NOT_A_PIN) {
-			snprintf_P(line, sizeof(line), PSTR("<br/><b>GPIO%d</b><select id='g%d' name='g%d'>"), settings.sensor_pin[i], i, i);
+			snprintf_P(line, sizeof(line), PSTR("<tr><th width='110'><b>GPIO%d</b></th><td width='184'><select id='g%d' name='g%d'>"), settings.sensor_pin[i], i, i);
 			page += line;
 			for (byte v = 0; v < SENSOR_END; v++) {
 				snprintf_P(stemp, sizeof(stemp), sensors[v]);
 				snprintf_P(line, sizeof(line), PSTR("<option%s value='%d'>%02d %s</option>"), (v == settings.sensor_mode[i]) ? " selected" : "", v, v, stemp);
 				page += line;
 			}
-			page += F("</select></br>");
+			page += F("</td></tr>");
 		}
 	}
+	page += F("</table>");
 
-	snprintf_P(line, sizeof(line), HTML_HOLDTIME, settings.hold_time);
-	page += line;
+	page += FPSTR(HTML_LEDMODE);
+
+	snprintf_P(stemp, sizeof(stemp), ledmodes[LEDMODE]);
+	page.replace(F("{lm}"), stemp);
+	for (byte idx = 0; idx < MAX_LED_OPTION; idx++) {
+		snprintf_P(stemp, sizeof(stemp), ledmodes[idx]);
+		snprintf_P(line, sizeof(line), PSTR("<option%s value='%d'>%01d %s</option>"), (idx == settings.led_mode) ? " selected" : "", idx, idx, stemp);
+		page += line;
+	}
+	page += F("</select><br/>");
+
+	page += FPSTR(HTML_HOLDTIME);
+	page.replace(F("{ht}"), String(settings.hold_time));
+
+	page += FPSTR(HTML_TELEPERIOD);
+	page.replace(F("{lt}"), String(settings.tele_period));
 
 	page += FPSTR(HTML_FORM_END);
 	page += FPSTR(HTML_BTN_CONF);
@@ -616,12 +636,12 @@ void handleMqtt()
 	String page = FPSTR(HTML_HEAD);
 	page.replace(F("{v}"), F("Configure MQTT"));
 	page += FPSTR(HTML_FORM_MQTT);
-	char str[sizeof(settings.mqtt_clientID)];
-	getClient(str, MQTT_CLIENT_ID, sizeof(settings.mqtt_clientID));
+	char str[sizeof(settings.mqtt_client_id)];
+	getClient(str, MQTT_CLIENT_ID, sizeof(settings.mqtt_client_id));
 	page.replace(F("{m0}"), str);
 	page.replace(F("{m1}"), settings.mqtt_host);
 	page.replace(F("{m2}"), String(settings.mqtt_port));
-	page.replace(F("{m3}"), settings.mqtt_clientID);
+	page.replace(F("{m3}"), settings.mqtt_client_id);
 	page.replace(F("{m4}"), (settings.mqtt_user[0] == '\0') ? "0" : settings.mqtt_user);
 	page.replace(F("{m5}"), (settings.mqtt_pwd[0] == '\0') ? "0" : settings.mqtt_pwd);
 	page.replace(F("{m6}"), settings.mqtt_topic);
@@ -662,6 +682,7 @@ void handleSave()
 	byte what = 0;
 	byte restart;
 	String result = "";
+	int payload;
 
 	if (strlen(webServer->arg("w").c_str())) {
 		what = atoi(webServer->arg("w").c_str());
@@ -695,7 +716,7 @@ void handleSave()
 		//strlcpy(sysCfg.mqtt_fulltopic, stemp2, sizeof(sysCfg.mqtt_fulltopic));
 		strlcpy(settings.mqtt_host, (!strlen(webServer->arg("mh").c_str())) ? MQTT_HOST : webServer->arg("mh").c_str(), sizeof(settings.mqtt_host));
 		settings.mqtt_port = (!strlen(webServer->arg("ml").c_str())) ? MQTT_PORT : atoi(webServer->arg("ml").c_str());
-		strlcpy(settings.mqtt_clientID, (!strlen(webServer->arg("mc").c_str())) ? MQTT_CLIENT_ID : webServer->arg("mc").c_str(), sizeof(settings.mqtt_clientID));
+		strlcpy(settings.mqtt_client_id, (!strlen(webServer->arg("mc").c_str())) ? MQTT_CLIENT_ID : webServer->arg("mc").c_str(), sizeof(settings.mqtt_client_id));
 		strlcpy(settings.mqtt_user, (!strlen(webServer->arg("mu").c_str())) ? MQTT_USER : (!strcmp(webServer->arg("mu").c_str(), "0")) ? "" : webServer->arg("mu").c_str(), sizeof(settings.mqtt_user));
 		strlcpy(settings.mqtt_pwd, (!strlen(webServer->arg("mp").c_str())) ? MQTT_PASS : (!strcmp(webServer->arg("mp").c_str(), "0")) ? "" : webServer->arg("mp").c_str(), sizeof(settings.mqtt_pwd));
 		Serial.print("HTTP: MQTT Host ");
@@ -703,7 +724,7 @@ void handleSave()
 		Serial.print(", Port ");
 		Serial.print(settings.mqtt_port);
 		Serial.print(", Client ");
-		Serial.print(settings.mqtt_clientID);
+		Serial.print(settings.mqtt_client_id);
 		Serial.print(", Topic ");
 		Serial.println(settings.mqtt_topic);
 		break;
@@ -761,14 +782,29 @@ void handleSave()
 				snprintf_P(stemp, sizeof(stemp), PSTR("g%d"), i);
 				settings.sensor_mode[i] = (!strlen(webServer->arg(stemp).c_str())) ? 0 : atoi(webServer->arg(stemp).c_str());
 			}
-			int holdTime = (!strlen(webServer->arg("ht").c_str())) ? 0 : atoi(webServer->arg("ht").c_str());
-			if (holdTime < 0) {
-				holdTime = 0;
+			payload = (!strlen(webServer->arg("lm").c_str())) ? 1 : atoi(webServer->arg("lm").c_str());
+			if (payload < 0 || payload >= MAX_LED_OPTION) {
+				payload = 1;
 			}
-			else if (holdTime > 3600) {
-				holdTime = 3600;
+			settings.led_mode = payload;
+
+			payload = (!strlen(webServer->arg("ht").c_str())) ? 0 : atoi(webServer->arg("ht").c_str());
+			if (payload < 0) {
+				payload = 0;
 			}
-			settings.hold_time = holdTime;
+			else if (payload > 3600) {
+				payload = 3600;
+			}
+			settings.hold_time = payload;
+
+			payload = (!strlen(webServer->arg("lt").c_str())) ? TELE_PERIOD : atoi(webServer->arg("lt").c_str());
+			if ((payload >= 0) && (payload < 3601)) {
+				settings.tele_period = (1 == payload) ? TELE_PERIOD : payload;
+				if ((settings.tele_period > 0) && (settings.tele_period < 10)) {
+					settings.tele_period = 10;   // Do not allow periods < 10 seconds
+				}
+				//tele_period = settings.tele_period;
+			}
 			break;
 		}
 	}
@@ -791,7 +827,7 @@ void handleSave()
 		}
 		showPage(page);
 
-		restartflag = 2;
+		restart_flag = 2;
 	}
 	else {
 		handleConfig();
@@ -813,7 +849,7 @@ void handleReset()
 	page += FPSTR(HTML_BTN_MAIN);
 	showPage(page);
 
-	restartflag = 200;
+	restart_flag = 200;
 }
 
 void handleCmnd()
@@ -922,7 +958,7 @@ void handleInfo()
 		page += F("<tr><th>AP MAC Address</th><td>"); page += WiFi.softAPmacAddress(); page += F("</td></tr>");
 	}
 	page += F("<tr><td>&nbsp;</td></tr>");
-	if (mqttEnabled) {
+	if (mqtt_enabled) {
 		page += F("<tr><th>MQTT Host</th><td>"); page += settings.mqtt_host; page += F("</td></tr>");
 		page += F("<tr><th>MQTT Port</th><td>"); page += String(settings.mqtt_port); page += F("</td></tr>");
 		//page += F("<tr><th>" D_MQTT_CLIENT " &<br/>&nbsp;" D_FALLBACK_TOPIC "</th><td>"); page += MQTTClient; page += F("</td></tr>");
@@ -938,21 +974,21 @@ void handleInfo()
 		page += F("<tr><th>MQTT</th><td>Disabled</td></tr>");
 	}
 	page += F("<tr><td>&nbsp;</td></tr>");
-//	page += F("<tr><th>" D_EMULATION "</th><td>");
-//#ifdef USE_EMULATION
-//	if (EMUL_WEMO == sysCfg.flag.emulation) {
-//		page += F(D_BELKIN_WEMO);
-//	}
-//	else if (EMUL_HUE == sysCfg.flag.emulation) {
-//		page += F(D_HUE_BRIDGE);
-//	}
-//	else {
-//		page += F(D_NONE);
-//	}
-//#else
-//	page += F(D_DISABLED);
-//#endif // USE_EMULATION
-//	page += F("</td></tr>");
+	//	page += F("<tr><th>" D_EMULATION "</th><td>");
+	//#ifdef USE_EMULATION
+	//	if (EMUL_WEMO == sysCfg.flag.emulation) {
+	//		page += F(D_BELKIN_WEMO);
+	//	}
+	//	else if (EMUL_HUE == sysCfg.flag.emulation) {
+	//		page += F(D_HUE_BRIDGE);
+	//	}
+	//	else {
+	//		page += F(D_NONE);
+	//	}
+	//#else
+	//	page += F(D_DISABLED);
+	//#endif // USE_EMULATION
+	//	page += F("</td></tr>");
 
 	page += F("<tr><th>mDNS Discovery</th><td>");
 #ifdef USE_DISCOVERY
@@ -999,7 +1035,7 @@ void handleRestart()
 	}
 	showPage(page);
 
-	restartflag = 2;
+	restart_flag = 2;
 }
 
 /********************************************************************************************/

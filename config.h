@@ -1,23 +1,20 @@
 #pragma once
 
-//if not defined, led is used to signal startup state, then always on
-//if defined, it is used to signal startup state, then mirrors relay state
-//S20 Smart Socket works better with it not defined
-#define SONOFF_LED_RELAY_STATE
 #define BUTTOM_DEBOUNCE        50                // Debounce time for buttons and sensors
 
 #define HOSTNAME               "sonoff"
-
+#define LEDMODE                LED_SYSTEM_RELAY  // [LedMode] Function of led (LED_OFF, LED_SYSTEM, LED_SYSTEM_RELAY, LED_SYSTEM_SENSOR)
+#define HOLD_TIME              0                 // [HoldTime] Relay hold time in seconds, 0 - off
+#define TELE_PERIOD            300               // [TelePeriod] Telemetry (0 = disable, 10 - 3600 seconds)
 
 // -- Wifi ----------------------------------------
 #define WIFI_HOSTNAME          HOSTNAME "-%04d"  // Expands to <HOSTNAME>-<last 4 decimal chars of MAC address>
 
-#define WIFI_SSID1             "Wireless1Net"     // [Ssid1] Wifi SSID
+#define WIFI_SSID1             "WirelessNet"     // [Ssid1] Wifi SSID
 #define WIFI_PASS1             "4997818762"      // [Password1] Wifi password
-#define WIFI_SSID2             "Wireless1Net2"    // [Ssid2] Optional alternate AP Wifi SSID
-#define WIFI_PASS2              "4997818762"     // [Password2] Optional alternate AP Wifi password
-#define WIFI_CONFIG_TOOL       WIFI_MANAGER      // [WifiConfig] Default tool if wifi fails to connect
-//   (WIFI_RESTART, WIFI_SMARTCONFIG, WIFI_MANAGER, WIFI_WPSCONFIG, WIFI_RETRY, WIFI_WAIT)
+#define WIFI_SSID2             "WirelessNet2"    // [Ssid2] Optional alternate AP Wifi SSID
+#define WIFI_PASS2             "4997818762"      // [Password2] Optional alternate AP Wifi password
+#define WIFI_CONFIG_TOOL       WIFI_MANAGER      // [WifiConfig] Default tool if wifi fails to connect (WIFI_RESTART, WIFI_SMARTCONFIG, WIFI_MANAGER, WIFI_WPSCONFIG, WIFI_RETRY, WIFI_WAIT)
 
 
 // -- MQTT ----------------------------------------
@@ -49,7 +46,7 @@
 
 #define BLYNK_SERVER           "blynk-cloud.com" // [Blynk] Host
 #define BLYNK_PORT             8442              // [Blynk] port
-#define BLYNK_TOKEN            "b57f755eb4c94f038ed11eff50499288" // [Blynk] (unique) token
+#define BLYNK_TOKEN            ""                // [Blynk] (unique) token
 #define BLYNK_ANALOG_PIN       10                // [Blynk] Analog virtual pin
 #define BLYNK_RETRY_SECS       10                // [Blynk] Minimum seconds to retry connection
 
@@ -74,7 +71,7 @@
 /*********************************************/
 #define MAX_RELAY              4
 #define MAX_SENSOR             4
-#define EEPROM_SALT            12659
+#define EEPROM_SALT            12666
 
 typedef struct {
 	// common
@@ -92,14 +89,15 @@ typedef struct {
 	int16_t mqtt_port = MQTT_PORT;
 	char mqtt_user[33] = MQTT_USER;
 	char mqtt_pwd[33] = MQTT_PASS;
-	char mqtt_clientID[24] = MQTT_CLIENT_ID;
+	char mqtt_client_id[24] = MQTT_CLIENT_ID;
 	char mqtt_topic[33] = HOSTNAME;
 
 	// basic
 	uint8_t button_pin = 0;        // button pin
 	uint8_t led_pin = 2;           // led pin
 	boolean led_inverted = true;   // if true - LOW for led on, otherwise HIGH for led on
-	int16_t hold_time = 0;         // relay hold on time in seconds
+	uint8_t led_mode = LEDMODE;    // LED mode
+	int16_t hold_time = HOLD_TIME; // relay hold on time in seconds
 
 	// relays
 	short relay_pin[MAX_RELAY] = { NOT_A_PIN, NOT_A_PIN, NOT_A_PIN, NOT_A_PIN };
@@ -107,6 +105,8 @@ typedef struct {
 	// sensors
 	uint8_t sensor_pin[MAX_SENSOR] = { 14, 12, 13, 15 };
 	byte sensor_mode[MAX_SENSOR] = { NO_SENSOR, NO_SENSOR, NO_SENSOR, NO_SENSOR };
+
+	uint16_t tele_period = TELE_PERIOD;
 
 	int16_t salt = EEPROM_SALT;    // salt
 } WMSettings;

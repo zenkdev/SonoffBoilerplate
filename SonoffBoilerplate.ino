@@ -17,10 +17,11 @@
 
 #include <ESP8266WiFi.h>
 
-enum sensor_t { NO_SENSOR, MOTION_SENSOR, SOUND_SENSOR, SENSOR_END };
 enum wifi_t { WIFI_RESTART, WIFI_SMARTCONFIG, WIFI_MANAGER, WIFI_WPSCONFIG, WIFI_RETRY, WIFI_WAIT, MAX_WIFI_OPTION };
 enum http_t { HTTP_OFF, HTTP_USER, HTTP_ADMIN, HTTP_MANAGER };
-enum butt_t { PRESSED, NOT_PRESSED };
+enum sensor_t { NO_SENSOR, MOTION_SENSOR, SOUND_SENSOR, SENSOR_END };
+enum button_t { PRESSED, NOT_PRESSED };
+enum ledmode_t { LED_OFF, LED_SYSTEM, LED_SYSTEM_RELAY, LED_SYSTEM_SENSOR, MAX_LED_OPTION };
 
 
 #include "config.h"
@@ -29,8 +30,8 @@ enum butt_t { PRESSED, NOT_PRESSED };
 #define BLYNK_PRINT            Serial  // Comment this out to disable prints and save space
 #include <BlynkSimpleEsp8266.h>
 
-uint8_t blynkCounter = 0;              // BLYNK retry counter
-boolean blynkEnabled = true;
+uint8_t blynk_counter = 0;             // BLYNK retry counter
+boolean blynk_enabled = true;
 WidgetLED* sensorLED[MAX_SENSOR];
 
 #endif // USE_BLYNK
@@ -48,8 +49,8 @@ WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 
 char mqttClientID[33];                 // Composed MQTT ClientID
-uint8_t mqttCounter = 0;               // MQTT retry counter
-boolean mqttEnabled = true;
+uint8_t mqtt_counter = 0;              // MQTT retry counter
+boolean mqtt_enabled = true;
 
 #endif // USE_MQTT
 
@@ -65,29 +66,34 @@ boolean mqttEnabled = true;
 #include <ESP8266mDNS.h>               // ArduinoOTA
 #include <ArduinoOTA.h>
 
-#include <Ticker.h>
-Ticker ticker;                         // for LED status
-
 WMSettings settings;
 char Hostname[33];                    // Composed Wifi hostname
 boolean mDNSbegun = false;
 
-int restartflag = 0;                  // Sonoff restart flag
+int restart_flag = 0;                 // Sonoff restart flag
 int wificheckflag = WIFI_RESTART;     // Wifi state flag
-int powerState = LOW;                 // if there is no relay, we use a variable to store the status
+uint8_t power_state = LOW;            // if there is no relay, we use a variable to store the status
 byte MaxRelay;
 
 boolean analog_flag = false;          // Analog input enabled
 int sensor_state[MAX_SENSOR] = { LOW, LOW, LOW, LOW }; // Current sensor states
 
-ulong loopTimer = 0;                  // 0.1 sec loop timer
-byte loopCounter = 0;                 // loop counter
-int16_t holdCounter = 0;              // hold counter
+ulong loop_timer = 0;                 // 0.1 sec loop timer
+byte loop_count = 0;                  // loop counter
+int16_t hold_count = 0;               // hold counter
 
 uint8_t lastbutton = NOT_PRESSED;     // Last button states
 uint8_t holdbutton = 0;               // Timer for button hold
 uint8_t multiwindow = 0;              // Max time between button presses to record press count
 uint8_t multipress = 0;               // Number of button presses within multiwindow
+
+int led_blinks = 2;                   // Number of LED blinks
+uint8_t led_state = 0;                // LED state
+
+int tele_period = 0;                  // Tele period timer
+uint16_t seconds_counter = 0;         // Seconds counter for uptime
+int uptime = 0;                       // Current uptime in hours
+
 
 void setup() {
 	Serial.begin(115200);
@@ -100,7 +106,7 @@ void setup() {
 
 #ifdef USE_BLYNK
 	if (strlen(settings.blynk_token) == 0) {
-		blynkEnabled = false;
+		blynk_enabled = false;
 	}
 	else {
 		Blynk.config(settings.blynk_token, settings.blynk_server, settings.blynk_port);
@@ -114,17 +120,17 @@ void setup() {
 
 #ifdef USE_MQTT
 	if (strlen(settings.mqtt_host) == 0) {
-		mqttEnabled = false;
+		mqtt_enabled = false;
 	}
 	else {
-		getClient(mqttClientID, settings.mqtt_clientID, sizeof(mqttClientID));
+		getClient(mqttClientID, settings.mqtt_client_id, sizeof(mqttClientID));
 #ifdef USE_DISCOVERY
 #ifdef MQTT_HOST_DISCOVERY
 		mdns_discoverMQTTServer();
 #endif  // MQTT_HOST_DISCOVERY
 #endif  // USE_DISCOVERY
 		mqttClient.setServer(settings.mqtt_host, settings.mqtt_port);
-		mqttClient.setCallback(mqttDataCb);
+		mqttClient.setCallback(mqtt_data_cb);
 	}
 #endif // USE_MQTT
 
@@ -176,13 +182,6 @@ void setup() {
 	}
 }
 
-void tick()
-{
-	//toggle state
-	int state = digitalRead(settings.led_pin);  // get the current state of led pin
-	digitalWrite(settings.led_pin, !state);     // set pin to the opposite state
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 // Button handler with single press only or multi-press and hold on all buttons
 void button_handler()
@@ -195,9 +194,8 @@ void button_handler()
 
 	if ((PRESSED == button) && (NOT_PRESSED == lastbutton)) {
 		multipress = (multiwindow) ? multipress + 1 : 1;
-		Serial.printf("Button multi-press %d\n", multipress);
-		multiwindow = 5;                  // 0.5 second multi press window
-										  //blinks = 201;
+		Serial.printf("BTN: Multi-press button %d\n", multipress);
+		multiwindow = 5; // 0.5 second multi press window
 	}
 
 	if (NOT_PRESSED == button) {
@@ -207,8 +205,8 @@ void button_handler()
 		holdbutton++;
 		if (holdbutton == 40) {      // Button hold 4 seconds
 			multipress = 0;
-			Serial.println("medium press - restart");
-			restartflag = 2;
+			Serial.println("BTN: Button hold 4 seconds - restart");
+			restart_flag = 200;
 		}
 	}
 
@@ -216,7 +214,7 @@ void button_handler()
 		multiwindow--;
 	}
 	else {
-		if (!restartflag && !holdbutton && (multipress > 0) && (multipress < MAX_BUTTON_COMMANDS + 3)) {
+		if (!restart_flag && !holdbutton && (multipress > 0) && (multipress < MAX_BUTTON_COMMANDS + 3)) {
 			flag = 0;
 			if (multipress < 3) {                  // Single or Double press
 				flag = (2 == multipress);
@@ -224,7 +222,7 @@ void button_handler()
 			}
 			if (multipress < 3) {                  // Single or Double press
 				if (WIFI_State()) {                // WPSconfig, Smartconfig or Wifimanager active
-					restartflag = 1;
+					restart_flag = 1;
 				}
 				else {
 					do_cmnd_power(multipress, 2);  // Execute Toggle command internally
@@ -242,26 +240,43 @@ void button_handler()
 
 void loop()
 {
-	if (millis() > loopTimer) {
+	if (millis() > loop_timer) {
 		// every 0.1 second
-		loopTimer = millis() + 100;
-		loopCounter++;
+		loop_timer = millis() + 100;
+		loop_count++;
 
 		button_handler();
 
-		if (loopCounter == 10) {
+		// every 0.2 second
+		if (!(loop_count % 2)) {
+			if (led_blinks || restart_flag) {
+				if (restart_flag) {
+					led_state = 1;   // Stay lit
+				}
+				else {
+					led_state ^= 1;  // Blink
+				}
+				led_set(led_state);
+				if (!led_state) {
+					//Serial.printf("LED: Blinks count %d\n", led_blinks);
+					led_blinks--;
+				}
+			}
+		}
+
+		if (loop_count == 10) {
 			// every second
-			loopCounter = 0;
+			loop_count = 0;
 			every_second();
 		}
 
-		if (restartflag) {
-			if (200 == restartflag) {
+		if (restart_flag) {
+			if (200 == restart_flag) {
 				reset();
-				restartflag = 2;
+				restart_flag = 2;
 			}
-			restartflag--;
-			if (restartflag <= 0) {
+			restart_flag--;
+			if (restart_flag <= 0) {
 				restart();
 			}
 		}
@@ -278,13 +293,13 @@ void loop()
 		ArduinoOTA.handle();
 
 #ifdef USE_BLYNK
-		if (blynkEnabled) {
+		if (blynk_enabled) {
 			Blynk.run();
 		}
 #endif // USE_BLYNK
 
 #ifdef USE_MQTT
-		if (mqttEnabled) {
+		if (mqtt_enabled) {
 			mqttClient.loop();
 		}
 #endif // USE_MQTT
@@ -294,35 +309,39 @@ void loop()
 	delay(0);  // https://github.com/esp8266/Arduino/issues/2021
 }
 
-void setRelay(int power, int relay) {
+void relay_set(uint8_t power, int relay) {
 	//relay
 	if (MaxRelay) {
 		digitalWrite(settings.relay_pin[relay - 1], power);
 	}
 	else {
-		powerState = power;
+		power_state = power;
 	}
 
-	//led
-	setLed(power);
+	// led control
+	if (settings.led_mode == LED_SYSTEM_RELAY) {
+		led_set(power);
+	}
 
 #ifdef USE_BLYNK
-	if (blynkEnabled) {
+	if (blynk_enabled) {
 		update_blynk(relay);
 	}
 #endif
 
 #ifdef USE_MQTT
-	if (mqttEnabled) {
+	if (mqtt_enabled) {
 		update_mqtt(relay);
 	}
 #endif
 }
 
-void setLed(int state) {
-#ifdef SONOFF_LED_RELAY_STATE
-	digitalWrite(settings.led_pin, (state + (settings.led_inverted ? 1 : 0)) % 2); // if inverted - led active is low
-#endif
+void led_set(uint8_t state) {
+	if (state) {
+		state = 1;
+	}
+	digitalWrite(settings.led_pin, settings.led_inverted ? !state : state); // if inverted - led active is low
+	//Serial.printf("LED: Set state %d\n", state);
 }
 
 void do_cmnd_power(int relay, byte state) {
@@ -335,40 +354,39 @@ void do_cmnd_power(int relay, byte state) {
 	if ((relay < 1) || (relay > MaxRelay)) {
 		relay = 1;
 	}
-	int power = MaxRelay ? digitalRead(settings.relay_pin[relay - 1]) : powerState;
+	int power = MaxRelay ? digitalRead(settings.relay_pin[relay - 1]) : power_state;
 	switch (state) {
 	case 0:  // Off
-		Serial.print("turn off ");
 		power = LOW;
-		holdCounter = 0; // disable hold on
+		hold_count = 0; // disable hold on
+		Serial.printf("PWR: Turn off, relay %d\n", relay);
 		break;
 	case 1: // On
-		Serial.print("turn on ");
 		power = HIGH;
-		holdCounter = 0; // disable hold on
+		hold_count = 0; // disable hold on
+		Serial.printf("PWR: Turn on, relay %d\n", relay);
 		break;
 	case 2: // Toggle
-		Serial.print("toggle state ");
 		power = power == HIGH ? LOW : HIGH;
-		holdCounter = 0; // disable hold on
+		hold_count = 0; // disable hold on
+		Serial.printf("PWR: Toggle state, relay %d\n", relay);
 		break;
 	case 3: // Hold On
-		Serial.print("hold on ");
 		if (settings.hold_time) {
 			// if hold on enabled
 			if (!power) {
-				setRelay(HIGH, relay); // set high power if is not
+				relay_set(HIGH, relay); // set high power if is not
 			}
-			holdCounter = settings.hold_time;
+			hold_count = settings.hold_time;
 		}
 		else {
 			// no hold time, simple turn off
 			power = LOW;
 		}
+		Serial.printf("PWR: Hold, relay %d\n", relay);
 	}
-	Serial.println(relay);
-	if (!holdCounter) {
-		setRelay(power, relay);
+	if (!hold_count) {
+		relay_set(power, relay);
 	}
 }
 
@@ -389,7 +407,7 @@ void do_cmnd(char *cmnd)
 	snprintf_P(stopic, sizeof(stopic), PSTR("/%s"), (token == NULL) ? "" : token);
 	token = strtok(NULL, "");
 	snprintf_P(svalue, sizeof(svalue), PSTR("%s"), (token == NULL) ? "" : token);
-	mqttDataCb(stopic, (byte*)svalue, strlen(svalue));
+	mqtt_data_cb(stopic, (byte*)svalue, strlen(svalue));
 }
 
 void restart() {
@@ -408,27 +426,21 @@ void reset() {
 
 // every second
 void every_second() {
-	// check if on hold
-	if (holdCounter) {
-		holdCounter--;
-
-		Serial.printf("[%d] Hold counter %d\n", millis(), holdCounter);
-		// blinks led
-		setLed(holdCounter % 2);
-
-		if (!holdCounter) {
-			// turn off relay
-			do_cmnd_power(1, 0);
-		}
+	// uptime
+	seconds_counter++;
+	if (seconds_counter >= 3600) {
+		seconds_counter = 0;
+		uptime++;
 	}
+
 	WIFI_Check(wificheckflag);
 	wificheckflag = WIFI_RESTART;
 	if (WiFi.status() == WL_CONNECTED) {
 #ifdef USE_BLYNK
-		if (blynkEnabled) {
+		if (blynk_enabled) {
 			if (!Blynk.connected()) {
-				if (!blynkCounter) {
-					blynkCounter = BLYNK_RETRY_SECS;
+				if (!blynk_counter) {
+					blynk_counter = BLYNK_RETRY_SECS;
 					Serial.print("Trying to connect to blynk...");
 					if (Blynk.connect()) {
 						Serial.println("connected");
@@ -438,29 +450,59 @@ void every_second() {
 					}
 				}
 				else {
-					blynkCounter--;
+					blynk_counter--;
 				}
 			}
 		}
 #endif // USE_BLYNK
 
 #ifdef USE_MQTT
-		if (mqttEnabled) {
+		if (mqtt_enabled) {
 			if (!mqttClient.connected()) {
 				Serial.printf("MQT: disconnected with state %d\n", mqttClient.state());
-				if (!mqttCounter) {
+				if (!mqtt_counter) {
 					reconnect_mqtt();
 				}
 				else {
-					mqttCounter--;
+					mqtt_counter--;
 				}
 			}
 		}
 #endif // USE_MQTT
 	}
+
+	// check if on hold
+	if (hold_count) {
+		hold_count--;
+		if (!hold_count) {
+			// turn off relay
+			do_cmnd_power(1, 0);
+		}
+	}
+
+	if (settings.tele_period) {
+		tele_period++;
+		//if (tele_period == settings.tele_period - 1) {
+		//	XsnsCall(FUNC_XSNS_PREP_BEFORE_TELEPERIOD);
+		//}
+		if (tele_period >= settings.tele_period) {
+			tele_period = 0;
+
+#ifdef USE_MQTT
+			if (mqtt_enabled) {
+				telemetry_mqtt();
+
+				//mqtt_data[0] = '\0';
+				//if (MqttShowSensor()) {
+				//	MqttPublishPrefixTopic_P(2, PSTR(D_RSLT_SENSOR), Settings.flag.mqtt_sensor_retain);
+				//}
+			}
+#endif // USE_MQTT
+		}
+	}
 }
 
-void mqttDataCb(char* topic, byte* data, unsigned int data_len) {
+void mqtt_data_cb(char* topic, byte* data, unsigned int data_len) {
 
 	char topicBuf[TOPSZ];
 	char dataBuf[data_len + 1];
@@ -476,7 +518,7 @@ void mqttDataCb(char* topic, byte* data, unsigned int data_len) {
 	memcpy(dataBuf, data, sizeof(dataBuf));
 	dataBuf[sizeof(dataBuf) - 1] = 0;
 
-	Serial.printf("MQT: Receive topic %s, data size %d, data %s\r", topicBuf, data_len, dataBuf);
+	Serial.printf("MQT: Receive topic %s, data size %d, data %s\n", topicBuf, data_len, dataBuf);
 
 	type = strrchr(topicBuf, '/') + 1;  // Last part of received topic is always the command (type)
 
@@ -498,14 +540,10 @@ void mqttDataCb(char* topic, byte* data, unsigned int data_len) {
 		dataBufUc[i] = toupper(dataBuf[i]);
 	}
 
-	Serial.printf("MQT: Index %d, type %s, data %s\r", index, type, dataBufUc);
+	Serial.printf("MQT: Index %d, type %s, data %s\n", index, type, dataBufUc);
 
 	if (type != NULL) {
 		snprintf_P(svalue, sizeof(svalue), PSTR("{\"Command\":\"Error\"}"));
-		//if (sysCfg.ledstate & 0x02) {
-		//	blinks++;
-		//}
-
 		if (!strcmp(dataBufUc, "?")) {
 			data_len = 0;
 		}
@@ -560,20 +598,20 @@ void mqttDataCb(char* topic, byte* data, unsigned int data_len) {
 		//	}
 		//	snprintf_P(svalue, sizeof(svalue), PSTR("%s}}"), svalue);
 		//}
-		//else if (!strcmp_P(type, PSTR("TELEPERIOD"))) {
-		//	if ((payload >= 0) && (payload < 3601)) {
-		//		sysCfg.tele_period = (1 == payload) ? TELE_PERIOD : payload;
-		//		if ((sysCfg.tele_period > 0) && (sysCfg.tele_period < 10)) {
-		//			sysCfg.tele_period = 10;   // Do not allow periods < 10 seconds
-		//		}
-		//		tele_period = sysCfg.tele_period;
-		//	}
-		//	snprintf_P(svalue, sizeof(svalue), PSTR("{\"TelePeriod\":\"%d%s\"}"), sysCfg.tele_period, (sysCfg.flag.value_units) ? " Sec" : "");
-		//}
+		else if (!strcmp_P(type, PSTR("TELEPERIOD"))) {
+			if ((payload >= 0) && (payload < 3601)) {
+				settings.tele_period = (1 == payload) ? TELE_PERIOD : payload;
+				if ((settings.tele_period > 0) && (settings.tele_period < 10)) {
+					settings.tele_period = 10;   // Do not allow periods < 10 seconds
+				}
+				//tele_period = settings.tele_period;
+			}
+			snprintf_P(svalue, sizeof(svalue), PSTR("{\"TelePeriod\":\"%d Sec\"}"), settings.tele_period);
+		}
 		else if (!strcmp_P(type, PSTR("RESTART"))) {
 			switch (payload) {
 			case 1:
-				restartflag = 2;
+				restart_flag = 2;
 				snprintf_P(svalue, sizeof(svalue), PSTR("{\"Restart\":\"Restarting\"}"));
 				break;
 			case 99:
@@ -587,11 +625,11 @@ void mqttDataCb(char* topic, byte* data, unsigned int data_len) {
 		else if (!strcmp_P(type, PSTR("RESET"))) {
 			switch (payload) {
 			case 1:
-				restartflag = 211;
+				restart_flag = 211;
 				snprintf_P(svalue, sizeof(svalue), PSTR("{\"Reset\":\"Reset and Restarting\"}"));
 				break;
 			case 2:
-				restartflag = 212;
+				restart_flag = 212;
 				snprintf_P(svalue, sizeof(svalue), PSTR("{\"Reset\":\"Erase, Reset and Restarting\"}"));
 				break;
 			default:
@@ -605,14 +643,20 @@ void mqttDataCb(char* topic, byte* data, unsigned int data_len) {
 				snprintf_P(stemp1, sizeof(stemp1), wificfg[settings.wifi_config]);
 				snprintf_P(svalue, sizeof(svalue), PSTR("{\"WifiConfig\":\"%s selected\"}"), stemp1);
 				if (WIFI_State() != WIFI_RESTART) {
-					//          snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("%s after restart"), mqtt_data);
-					restartflag = 2;
+					snprintf_P(svalue, sizeof(svalue), PSTR("%s after restart"), svalue);
+					restart_flag = 2;
 				}
 			}
 			else {
 				snprintf_P(stemp1, sizeof(stemp1), wificfg[settings.wifi_config]);
 				snprintf_P(svalue, sizeof(svalue), PSTR("{\"WifiConfig\":\"%d (%s)\"}"), settings.wifi_config, stemp1);
 			}
+		}
+		else if (!strcmp_P(type, PSTR("HOLDTIME"))) {
+			if ((payload >= 0) && (payload < 3600)) {
+				settings.hold_time = payload;
+			}
+			snprintf_P(svalue, sizeof(svalue), PSTR("{\"HoldTime\":%d}"), settings.hold_time);
 		}
 		//else if (!strcmp_P(type, PSTR("LEDPOWER"))) {
 		//	if ((payload >= 0) && (payload <= 2)) {
@@ -631,22 +675,22 @@ void mqttDataCb(char* topic, byte* data, unsigned int data_len) {
 		//	}
 		//	snprintf_P(svalue, sizeof(svalue), PSTR("{\"LedPower\":\"%s\"}"), getStateText(bitRead(sysCfg.ledstate, 3)));
 		//}
-		//else if (!strcmp_P(type, PSTR("LEDSTATE"))) {
-		//	if ((payload >= 0) && (payload < MAX_LED_OPTION)) {
-		//		sysCfg.ledstate = payload;
-		//		if (!sysCfg.ledstate) {
-		//			setLed(0);
-		//		}
-		//	}
-		//	snprintf_P(svalue, sizeof(svalue), PSTR("{\"LedState\":%d}"), sysCfg.ledstate);
-		//}
+		else if (!strcmp_P(type, PSTR("LEDMODE"))) {
+			if ((payload >= 0) && (payload < MAX_LED_OPTION)) {
+				settings.led_mode = payload;
+				if (!settings.led_mode) {
+					led_set(0);
+				}
+			}
+			snprintf_P(svalue, sizeof(svalue), PSTR("{\"LedMode\":%d}"), settings.led_mode);
+		}
 		else {
 			type = NULL;
 		}
 	}
 #ifdef USE_MQTT
 	if (type == NULL) {
-		//blinks = 201;
+		led_blinks++;
 		snprintf_P(topicBuf, sizeof(topicBuf), PSTR("COMMAND"));
 		snprintf_P(svalue, sizeof(svalue), PSTR("{\"Command\":\"Unknown\"}"));
 		type = (char*)topicBuf;
@@ -665,7 +709,7 @@ void update_blynk(int relay) {
 	if ((relay < 1) || (relay > MaxRelay)) {
 		relay = 1;
 	}
-	int state = MaxRelay ? digitalRead(settings.relay_pin[relay - 1]) : powerState;
+	int state = MaxRelay ? digitalRead(settings.relay_pin[relay - 1]) : power_state;
 	Blynk.virtualWrite(relay, state);
 	Serial.printf("BLK: Write on pin V%d value %d\n", relay, state);
 }
@@ -777,28 +821,21 @@ BLYNK_WRITE(31) {
 void reconnect_mqtt() {
 	char topic[TOPSZ];
 
-	mqttCounter = MQTT_RETRY_SECS;
+	mqtt_counter = MQTT_RETRY_SECS;
 
 	sprintf(topic, PUB_PREFIX2 "/%s/LWT", settings.mqtt_topic);
 	Serial.print("MQT: Attempting connection...\n");
 	if (mqttClient.connect(mqttClientID, settings.mqtt_user, settings.mqtt_pwd, topic, 1, true, "Offline")) {
-		Serial.print("MQT: Connected\n");
 		// Once connected, publish an announcement...
 		mqttClient.publish(topic, "Online", true);
 		// ... and resubscribe
 		sprintf(topic, SUB_PREFIX "/%s/+", settings.mqtt_topic);
-		Serial.println(topic);
 		mqttClient.subscribe(topic);
 		mqttClient.loop();  // Solve LmacRxBlk:1 messages
+		Serial.printf("MQT: Connected, subscribe topic %s\n", topic);
 
-		update_mqtt(1);
-		for (byte i = 2; i <= MaxRelay; i++) {
-			update_mqtt(i);
-		}
-		for (byte i = 1; i <= MAX_SENSOR; i++) {
-			if (settings.sensor_mode[i - 1] != NO_SENSOR) {
-				publish_mqtt(i);
-			}
+		if (settings.tele_period) {
+			tele_period = settings.tele_period - 3;
 		}
 	}
 	else {
@@ -807,7 +844,7 @@ void reconnect_mqtt() {
 }
 
 void update_mqtt(int relay) {
-	int state = MaxRelay ? digitalRead(settings.relay_pin[relay - 1]) : powerState;
+	int state = MaxRelay ? digitalRead(settings.relay_pin[relay - 1]) : power_state;
 	char topic[TOPSZ];
 	char stateString[5];
 	if (settings.module == 1) { // Sonoff Dual
@@ -842,5 +879,38 @@ void publish_mqtt(int sensor) {
 	Serial.printf("MQT: Publish on topic %s payload %s\n", topic, stateString);
 }
 
+void telemetry_mqtt()
+{
+	char stemp1[16];
+
+	char topic[TOPSZ];
+	char mqtt_data[MESSZ + TOPSZ];              // MQTT publish buffer (MESSZ) and web page ajax buffer (MESSZ + TOPSZ)
+
+	//snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("%s{\"Time\":\"%s\",\"Uptime\":%d"), mqtt_data, GetDateAndTime().c_str(), uptime);
+	snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"Uptime\":%d,\"Ledmode\":%d,\"Holdtime\":%d\"Teleperiod\":%d"), uptime, settings.led_mode, settings.hold_time, settings.tele_period);
+//#ifdef USE_ADC_VCC
+//	dtostrfd((double)ESP.getVcc() / 1000, 3, stemp1);
+//	snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("%s,\"Vcc\":%s"), mqtt_data, stemp1);
+//#endif
+//	for (byte i = 0; i < devices_present; i++) {
+//		snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("%s,\"%s\":\"%s\""), mqtt_data, GetPowerDevice(stemp1, i + 1, sizeof(stemp1)), GetStateText(bitRead(power, i)));
+//	}
+	snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("%s,\"Wifi\":{\"AP\":%d,\"SSId\":\"%s\",\"RSSI\":%d,\"APMAC\":\"%s\"}}"),
+		mqtt_data, settings.wifi_active + 1, settings.wifi_ssid[settings.wifi_active], WIFI_getRSSIasQuality(WiFi.RSSI()), WiFi.BSSIDstr().c_str());
+
+	sprintf(topic, PUB_PREFIX2 "/%s/STATE", settings.mqtt_topic);
+	mqttClient.publish(topic, mqtt_data, false);
+	Serial.printf("MQT: Publish on topic %s payload %s\n", topic, mqtt_data);
+
+	update_mqtt(1);
+	for (byte i = 2; i <= MaxRelay; i++) {
+		update_mqtt(i);
+	}
+	for (byte i = 1; i <= MAX_SENSOR; i++) {
+		if (settings.sensor_mode[i - 1] != NO_SENSOR) {
+			publish_mqtt(i);
+		}
+	}
+}
 #endif // USE_MQTT
 
