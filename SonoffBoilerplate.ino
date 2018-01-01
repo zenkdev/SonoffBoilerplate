@@ -847,7 +847,7 @@ void update_mqtt(int relay) {
 	int state = MaxRelay ? digitalRead(settings.relay_pin[relay - 1]) : power_state;
 	char topic[TOPSZ];
 	char stateString[5];
-	if (settings.module == 1) { // Sonoff Dual
+	if (settings.module == 2) { // Sonoff Dual
 		sprintf(topic, PUB_PREFIX "/%s/POWER%d", settings.mqtt_topic, relay);
 	}
 	else {
