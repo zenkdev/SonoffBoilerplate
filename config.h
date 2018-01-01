@@ -100,10 +100,10 @@ typedef struct {
 	int16_t hold_time = HOLD_TIME; // relay hold on time in seconds
 
 	// relays
-	short relay_pin[MAX_RELAY] = { NOT_A_PIN, NOT_A_PIN, NOT_A_PIN, NOT_A_PIN };
+	int8_t relay_pin[MAX_RELAY] = { NOT_A_PIN, NOT_A_PIN, NOT_A_PIN, NOT_A_PIN };
 
 	// sensors
-	uint8_t sensor_pin[MAX_SENSOR] = { 14, 12, 13, 15 };
+	int8_t sensor_pin[MAX_SENSOR] = { 14, 12, 13, 15 };
 	byte sensor_mode[MAX_SENSOR] = { NO_SENSOR, NO_SENSOR, NO_SENSOR, NO_SENSOR };
 
 	uint16_t tele_period = TELE_PERIOD;

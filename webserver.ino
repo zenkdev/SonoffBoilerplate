@@ -360,8 +360,7 @@ void handleRoot()
 			page += F("<tr>");
 			for (byte idx = 1; idx <= MaxRelay; idx++) {
 				snprintf_P(stemp, sizeof(stemp), PSTR(" %d"), idx);
-				snprintf_P(line, sizeof(line), PSTR("<td style='width:%d%'><button onclick='la(\"?o=%d\");'>Toggle%s</button></td>"),
-					100 / MaxRelay, idx, (MaxRelay > 1) ? stemp : "");
+				snprintf_P(line, sizeof(line), PSTR("<td style='width:%d%'><button onclick='la(\"?o=%d\");'>Toggle%s</button></td>"), 100 / MaxRelay, idx, (MaxRelay > 1) ? stemp : "");
 				page += line;
 			}
 			page += F("</tr></table>");
@@ -432,8 +431,7 @@ void handleAjax2()
 		page += FPSTR(HTML_TABLE100);
 		page += F("<tr>");
 		for (byte idx = 1; idx <= MaxRelay; idx++) {
-			snprintf_P(line, sizeof(line), PSTR("<td style='width:%d%'><div style='text-align:center;font-weight:bold;font-size:%dpx'>%s</div></td>"),
-				100 / MaxRelay, 70 - (MaxRelay * 8), getStateText(digitalRead(settings.relay_pin[idx - 1])));
+			snprintf_P(line, sizeof(line), PSTR("<td style='width:%d%'><div style='text-align:center;font-weight:bold;font-size:%dpx'>%s</div></td>"), 100 / MaxRelay, 70 - (MaxRelay * 8), getStateText(digitalRead(settings.relay_pin[idx - 1])));
 			page += line;
 		}
 		page += F("</tr></table>");
@@ -772,7 +770,7 @@ void handleSave()
 		break;
 	case 6: // Module
 		byte new_module = (!strlen(webServer->arg("mt").c_str())) ? 0 : atoi(webServer->arg("mt").c_str());
-		byte new_modflg = (settings.module != new_module);
+		boolean new_modflg = (settings.module != new_module);
 		settings.module = new_module;
 		if (new_modflg) {
 			setup_module();

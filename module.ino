@@ -2,9 +2,9 @@
 #define MAX_MODULE         5
 
 // Supported hardware modules
-const char modules[MAX_MODULE][15] PROGMEM = { "WeMos D1 mini", "Sonoff Basic", "Sonoff Dual", "Sonoff TH", "S20 Socket" };
+const char modules[MAX_MODULE][20] PROGMEM = { "WeMos D1 mini", "Sonoff Basic", "Sonoff Dual", "Sonoff TH", "S20 Socket" };
 // Supported led model
-const char ledmodes[MAX_LED_OPTION][18] PROGMEM = { "Off", "System", "System & Relay", "System & Sensor" };
+const char ledmodes[MAX_LED_OPTION][20] PROGMEM = { "Off", "System", "System & Relay", "System & Sensor" };
 
 void setup_module() {
 	switch (settings.module)
